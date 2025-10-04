@@ -1,20 +1,32 @@
-import React from 'react'; // <-- This is the fix
+import React, { useState } from 'react';   // ✅ merged imports properly
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from './Layout';
-import { useState } from 'react';
+import axios from 'axios';   // ✅ added axios import
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (event) => {
+  // ✅ replaced old handleSubmit with axios version
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log('Login attempt with:', { email, password });
-    navigate('/dashboard');
+
+    try {
+      const response = await axios.post("http://localhost:8000/login", {
+        email: email,
+        password: password,
+      });
+
+      console.log("Login success:", response.data);
+      localStorage.setItem("token", response.data.access_token); // ✅ save token
+      navigate("/dashboard");  // redirect after login
+    } catch (error) {
+      console.error("full error:", error.response || error.message);
+      alert(error.response?.data?.detail || "Login failed");
+    }
   };
 
-  
   return (
     <Layout>
       <div className="p-8 bg-white rounded-lg shadow-md w-full max-w-sm">
