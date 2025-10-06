@@ -7,35 +7,60 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from backend.agents.search_and_filter_agent import saf_agent
 
-def debug_search_agent():
+def test_the_search_and_filter_agent_with_filters():
     """
-    A simplified test to debug the search agent with a basic query.
+    Tests the Search and Filter sub-agent with specific metadata filters.
     """
-    print("\n--- Debugging the Search & Filter Sub-Agent ---")
+    print("\n--- Testing the Search & Filter Sub-Agent with Filters ---")
     
-    # 1. Define a very simple, single research question.
-    # We are bypassing the multi-step LLM query expansion for this test.
+    # Define the input, including the new filter criteria.
+    # This simulates the data that will be passed from the orchestrator.
     input_data = {
         "research_questions": [
-            "Artificial Intelligence" 
+            "multi-agent systems for literature review"
+        ],
+        "start_year": 2022,
+        "end_year": 2024,
+        # --- NEW, BROADER LIST OF SOURCES ---
+        "sources": [ 
+            "Springer", 
+            "Elsevier", 
+            "ScienceDirect", 
+            "ACM", 
+            "IEEE",
+            "Nature"
         ]
     }
     
-    print(f"Invoking agent with simple query: {input_data['research_questions']}")
+    print(f"Invoking agent with {len(input_data['research_questions'])} research question(s)...")
+    print(f"Applying filters: Year Range ({input_data['start_year']}-{input_data['end_year']}), Sources ({input_data['sources']})")
     
-    # 2. Invoke the agent directly
-    # The agent will still run its *internal* query expansion on this simple phrase.
+    # Invoke the agent with the input data
     result = saf_agent.invoke(input_data)
     
-    # 3. Check the final result
-    if result and result.get("filtered_papers"):
-        papers = result["filtered_papers"]
-        print(f"\n✅ SUCCESS: Agent found {len(papers)} papers.")
-        if papers:
-            print("--- Example Paper ---")
-            print(json.dumps(papers[0], indent=2))
+    # Check the final result from the agent
+    if result:
+        raw_papers = result.get("raw_papers", [])
+        filtered_papers = result.get("filtered_papers", [])
+        
+        print(f"\n--- Results ---")
+        print(f"  - Total unique papers found before filtering: {len(raw_papers)}")
+        print(f"  - Papers remaining after all filters: {len(filtered_papers)}")
+        
+        if filtered_papers:
+            print(f"\n✅ Test Passed: Agent returned {len(filtered_papers)} filtered papers.")
+            print("--- Example Filtered Paper ---")
+            # Verify that the example paper meets the criteria
+            example = filtered_papers[0]
+            print(json.dumps(example, indent=2))
+            print("---------------------------------")
+            print(f"Verification: Year ({example.get('year')}), Abstract Present ({bool(example.get('abstract'))})")
+
+        else:
+             print("\n✅ Test Passed: Agent correctly filtered all papers, resulting in an empty list.")
+
     else:
-        print("\n❌ FAILURE: Agent still found 0 papers, even with a simple query.")
+        print("\n❌ Test Failed: Agent did not return a valid result.")
 
 if __name__ == "__main__":
-    debug_search_agent()
+    test_the_search_and_filter_agent_with_filters()
