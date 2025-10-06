@@ -156,3 +156,6 @@ Thumbs.db
 # Database / project-specific
 # =======================================
 litscout.db
+
+screened_papers.txt
+excluded_papers_log.txt
