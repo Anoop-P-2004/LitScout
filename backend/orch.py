@@ -17,6 +17,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_groq import ChatGroq
 from langgraph.graph import StateGraph, END
+from utils.fetch_papers import fetch_papers
 
 # --- API KEY VALIDATION ---
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -289,21 +290,53 @@ def screening_tool(filtered_papers: List[Dict], research_questions: List[str],
 
 @tool
 def extraction_tool(screened_papers: List[Dict], research_questions: List[str]) -> Dict[str, Any]:
-    """Extraction Agent Tool"""
+    """
+    Extraction Agent Tool
+    Now includes free paper fetching before downstream extraction.
+    """
     print("---TOOL: Extraction Agent---")
+    
     try:
+        print(f"Fetching PDFs/texts for {len(screened_papers)} screened papers")
+
+        # ---- NEW: PAPER FETCHING STEP ----
+        fetch_results = fetch_papers(screened_papers)
+
+        print(
+            f"Paper fetching completed | "
+            f"Downloaded: {fetch_results.get('downloaded', 0)} | "
+            f"Skipped: {fetch_results.get('skipped', 0)} | "
+            f"Failed: {fetch_results.get('failed', 0)}"
+        )
+
+        # ---- EXISTING EXTRACTION LOGIC (UNCHANGED) ----
         extraction_input = {
             "screened_papers": screened_papers,
             "research_questions": research_questions,
             "extraction_template": "standard_literature_review"
         }
-        print(f"Extracting from {len(screened_papers)} papers")
+
+        print("Invoking downstream extraction agent")
         extraction_result = extraction_agent.invoke(extraction_input)
-        print(f"Extraction completed")
+
+        # Attach fetch metadata without breaking downstream contracts
+        extraction_result["extraction_results"] = {
+            **extraction_result.get("extraction_results", {}),
+            "paper_fetching": fetch_results
+        }
+
+        print("Extraction completed")
         return extraction_result
+
     except Exception as e:
         print(f"Error in extraction_tool: {e}")
-        return {"extracted_data": {}, "extraction_results": {}, "error": str(e)}
+        return {
+            "extracted_data": {},
+            "extraction_results": {"paper_fetching": "failed"},
+            "error": str(e)
+        }
+
+
 
 @tool
 def thematic_analysis_tool(extracted_data: Dict, research_questions: List[str]) -> Dict[str, Any]:
