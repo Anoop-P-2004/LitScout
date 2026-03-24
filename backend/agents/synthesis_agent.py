@@ -141,7 +141,7 @@ def prepare_context_node(state: SynthesisState) -> Dict:
 
         # Gather supporting paper snippets for this theme
         supporting = []
-        for cid in citations[:5]:
+        for cid in citations[:25]:
             snippet = paper_lookup.get(cid)
             if not snippet:
                 # Fuzzy fallback: search by title fragment
@@ -219,6 +219,9 @@ CRITICAL:
 - Output MUST be valid JSON only.
 - Do NOT include markdown formatting inside section_text (no **, no #, etc.)
 - Do NOT add explanatory text outside the JSON.
+- Use a diverse range of citations across papers
+- Avoid repeating the same 2-3 citations excessively
+- Ensure at least 8-12 UNIQUE citations across the full output
 
 {parser.get_format_instructions()}
 """

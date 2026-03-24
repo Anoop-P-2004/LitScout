@@ -217,7 +217,7 @@ Papers:
 
     refined = []
     for t in themes:
-        citations = sorted(citation_map[t["name"]])
+        citations = list(citation_map[t["name"]])
         if len(citations) >= MIN_SUPPORT_PER_THEME:
             t["citations"] = citations
             refined.append(t)
