@@ -555,6 +555,14 @@ Complete: {workflow_complete}
 7. quality_assurance_tool
 8. generate_final_report
 
+CRITICAL RULES:
+- You MUST execute these steps in strict sequential order.
+- Do NOT skip any steps under any circumstances.
+- If 'Has Synthesis' is False, you MUST call 'synthesis_tool' next.
+- If you just ran 'synthesis_tool', your next step MUST be 'quality_assurance_tool'.
+- If you just ran 'quality_assurance_tool' and 'Quality Passed' is False, you MUST loop back and call 'synthesis_tool' again to improve the draft.
+- You can ONLY call 'generate_final_report' if 'Quality Passed' is True.
+
 Set next_agent to "END" when complete.
 No emojis or text formatting.
 
